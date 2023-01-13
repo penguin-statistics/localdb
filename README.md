@@ -13,7 +13,7 @@ LocalDB is a development and testing purpose PostgreSQL database container that 
 ### Prerequisites
 
 1. [Install `just`](https://github.com/casey/just#packages)
-   > `just` is a task runner inspired by `make` and `npm run`. It is designed to be an extremely simple way to define and run tasks. It is written in Rust, and is available on Windows, macOS, and Linux.
+   > `just` a task runner. `just` is inspired by `make` and `npm run`. It is designed to be an extremely simple way to define and run tasks. It is written in Rust, and is available on Windows, macOS, and Linux.
 2. `cp .env.example .env` and put AWS credentials into `.env`
 
 ### Usage
@@ -27,3 +27,7 @@ You will need to use the same DB credential as of the production DB. Efforts may
 Use `just dev` to start the LocalDB in development mode. This will first clear the development database volume, initialize the database, then it will fetch the `debug` backup from AWS S3 and restore it.
 
 We are using the `debug` backup instead of the `prod` backup. The `debug` backup is a deadly simple backup that only contains a `postgres.testtable` with 3 rows of testing data. This is to make the development process much faster and also saves bandwidth.
+
+## License
+
+[MIT](https://github.com/penguin-statistics/localdb/blob/LICENSE)
