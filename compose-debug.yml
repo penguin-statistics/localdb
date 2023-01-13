@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: penguin-localdb-dev
     ports:
-      - "15432:5432"
+      - "15433:5432"
     environment:
       - PYTHONUNBUFFERED=1
     env_file:
@@ -15,6 +15,11 @@ services:
     volumes:
       - postgres-dev:/var/lib/postgresql
     command: --backup-source debug
+    networks:
+      - "penguin-localdb-dev"
 
 volumes:
   postgres-dev:
+
+networks:
+  penguin-localdb-dev:

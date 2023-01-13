@@ -8,6 +8,8 @@ from colorama import Back, Fore, Style
 from prompt_toolkit import prompt
 from pydantic import BaseModel
 
+DEBUG_PRINT_PGDATA_CONF_CONTENTS = False
+
 
 class CommandException(Exception):
     pass
@@ -43,7 +45,7 @@ args = parse_args()
 
 PGBACKREST_CONFIG_FORMAT = """
 [main]
-pg1-path=/var/lib/postgresql/data
+pg1-path={pgdata}
 
 [global]
 process-max=2
@@ -79,7 +81,7 @@ class AWSSettings(BaseModel):
     region: str
     bucket: str
 
-    def format_yaml(self):
+    def format(self):
         return f"""\
         repo1-s3-key={self.access_key}
         repo1-s3-key-secret={self.secret_key}
@@ -95,7 +97,8 @@ class BackupS3Path(str, Enum):
 
 
 def format_pgbackrest(settings: AWSSettings, env: BackupS3Path):
-    return PGBACKREST_CONFIG_FORMAT.format(aws_settings=settings.format_yaml(), s3_path=env.value)
+    return PGBACKREST_CONFIG_FORMAT.format(aws_settings=settings.format(), s3_path=env.value,
+                                           pgdata=args.pgdata)
 
 
 PGBACKREST_CONFIG = "/etc/pgbackrest.conf"
@@ -203,17 +206,18 @@ def exec_postgres_docker_entrypoint():
 
 def clear_postgres_pgdata_dir():
     print_func_name()
-    exec_subprocess(["rm", "-rf", args.pgdata + "/*"])
+    exec_subprocess(["bash", "-c", f"rm -rf {args.pgdata}/*"])
 
 
 def print_pgdata_stats():
     exec_subprocess(
-        ["ls", "-l", f"{args.pgdata}"])
-    try:
-        exec_subprocess(
-            ["bash", "-c", "cat /var/lib/postgresql/data/*.conf"])
-    except CommandException as e:
-        print(e)
+        ["tree", "-L", "2", "-uga", args.pgdata])
+    if DEBUG_PRINT_PGDATA_CONF_CONTENTS:
+        try:
+            exec_subprocess(
+                ["bash", "-c", "cat /var/lib/postgresql/data/postgresql*"])
+        except CommandException as e:
+            print(e)
 
 
 def fix_postgres_conf_permissions():
@@ -245,38 +249,49 @@ def restore_postgres_conf():
 
 def exec_pgbackrest_restore():
     print_func_name()
-    exec_pgbackrest(["restore", "--archive-mode", "off"])
+    # exec_pgbackrest(["restore", "--archive-mode", "off"])
+    exec_pgbackrest(["restore"])
 
 
 def start_postgres():
     print_func_name()
     exec_subprocess(["gosu", "postgres", "postgres"])
+    # exec_subprocess(["gosu", "postgres", "pg_ctl", "-D", args.pgdata, "start"])
+    # # tail -f on /var/log/postgresql/postgresql.log
+    # # to see what is going on
+    # try:
+    #     exec_subprocess(["tail", "-f", "/var/log/postgresql/postgresql.log"])
+    # except KeyboardInterrupt:
+    #     exec_subprocess(["gosu", "postgres", "pg_ctl",
+    #                     "-D", args.pgdata, "stop"])
 
 
-# def temp():
-#     print_func_name()
-#     content_to_append = """
-#     archive_mode = 'off'
-#     restore_command = 'pgbackrest --stanza=main archive-get %f "%p"'
-#     """
-#     # append content_to_append to postgresql.conf in args.pgdata
-#     with open(f"{args.pgdata}/postgresql.conf", "a") as f:
-#         f.write(content_to_append)
+def add_restore_command_to_conf():
+    print_func_name()
+    content_to_append = """
+archive_mode = 'off'
+restore_command = ''
+    """
+    # append content_to_append to postgresql.conf in args.pgdata
+    with open(f"{args.pgdata}/postgresql.conf", "a") as f:
+        f.write(content_to_append)
 
 
 def main():
-    # temp()
     print_pgdata_stats()
     write_pgbackrest_config()
     exec_postgres_docker_entrypoint()
     print_pgdata_stats()
     backup_postgres_conf()
+    # create_pgbackrest_local_repo()
     check_pgbackrest_info()
     print_pgdata_stats()
-    # clear_postgres_pgdata_dir()
+    clear_postgres_pgdata_dir()
+    print_pgdata_stats()
     exec_pgbackrest_restore()
     print_pgdata_stats()
     restore_postgres_conf()
+    # add_restore_command_to_conf()
     start_postgres()
 
 
