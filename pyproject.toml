@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "penguin-local-db"
+version = "0.1.0"
+description = ""
+authors = ["GalvinGao <me@galvingao.com>"]
+readme = "README.md"
+# packages = [{include = "penguin_local_db"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+prompt-toolkit = "^3.0.36"
+pydantic = "^1.10.4"
+colorama = "^0.4.6"
+
+
+[tool.poetry.group.dev.dependencies]
+autopep8 = "^2.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

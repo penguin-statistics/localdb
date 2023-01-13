@@ -1,0 +1,20 @@
+version: "2.4"
+
+services:
+  penguin-localdb-dev:
+    build:
+      context: "."
+      dockerfile: Dockerfile
+    container_name: penguin-localdb-dev
+    ports:
+      - "15432:5432"
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - ./.env
+    volumes:
+      - postgres-dev:/var/lib/postgresql
+    command: --backup-source debug
+
+volumes:
+  postgres-dev:
