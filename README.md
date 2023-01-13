@@ -6,6 +6,8 @@
 
 [![License](https://img.shields.io/github/license/penguin-statistics/localdb)](https://github.com/penguin-statistics/localdb/blob/dev/LICENSE)
 
+LocalDB is a development and testing purpose PostgreSQL database container that automatically restores the latest backup from AWS S3 using [pgBackRest](https://pgbackrest.org/).
+
 ## Usage
 
 ### Prerequisites
@@ -16,7 +18,7 @@
 
 ### Usage
 
-Use `just start` to start the LocalDB. LocalDB script will properly initialize the PostgreSQL Database within the container, restore the latest backup from AWS S3 using pgbackrest, and start the PostgreSQL server in the container.
+Use `just start` to start the LocalDB. LocalDB script will properly initialize the PostgreSQL Database within the container, restore the latest backup from AWS S3 using pgBackRest, and start the PostgreSQL server in the container.
 
 You will need to use the same DB credential as of the production DB. Efforts may be made to make the DB credential configurable in the future.
 
