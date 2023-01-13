@@ -27,7 +27,7 @@ fresh-prod:
     docker compose -f compose-prod.yml up --force-recreate --build
 
 start:
-    docker compose -f compose-prod.yml up -d --force-recreate --build
+    docker compose -f compose-prod.yml up --force-recreate --build
 
 stop:
     docker compose -f compose-prod.yml stop
