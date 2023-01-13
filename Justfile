@@ -16,6 +16,16 @@ dev:
     docker compose -f compose-debug.yml down
     docker compose -f compose-debug.yml up --force-recreate --build
 
+fresh-dev:
+    docker compose -f compose-debug.yml down
+    -docker volume rm penguin-local-db_postgres-dev
+    docker compose -f compose-debug.yml up --force-recreate --build
+
+fresh-prod:
+    docker compose -f compose-prod.yml down
+    -docker volume rm penguin-local-db_postgres
+    docker compose -f compose-prod.yml up --force-recreate --build
+
 start:
     docker compose -f compose-prod.yml up -d --force-recreate --build
 

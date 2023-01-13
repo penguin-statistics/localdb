@@ -206,6 +206,43 @@ def clear_postgres_pgdata_dir():
     exec_subprocess(["rm", "-rf", args.pgdata + "/*"])
 
 
+def print_pgdata_stats():
+    exec_subprocess(
+        ["ls", "-l", f"{args.pgdata}"])
+    try:
+        exec_subprocess(
+            ["bash", "-c", "cat /var/lib/postgresql/data/*.conf"])
+    except CommandException as e:
+        print(e)
+
+
+def fix_postgres_conf_permissions():
+    print_func_name()
+    exec_subprocess(
+        ["bash", "-c", f"chown --reference={args.pgdata}/PG_VERSION {args.pgdata}/*.conf"])
+    exec_subprocess(
+        ["bash", "-c", f"chmod --reference={args.pgdata}/PG_VERSION {args.pgdata}/*.conf"])
+
+
+def backup_postgres_conf():
+    print_func_name()
+    exec_subprocess(["mkdir", "-p", "/tmp/pgconfbackup"])
+    exec_subprocess(
+        ["bash", "-c", f"cp -r {args.pgdata}/*.conf /tmp/pgconfbackup"])
+    print_pgdata_stats()
+
+
+def restore_postgres_conf():
+    print_func_name()
+    # restore configuration, but do not override existing files.
+    exec_subprocess(
+        ["bash", "-c", f"cp -r /tmp/pgconfbackup/*.conf {args.pgdata}"])
+    exec_subprocess(
+        ["rm", "-rf", "/tmp/pgconfbackup"])
+    fix_postgres_conf_permissions()
+    print_pgdata_stats()
+
+
 def exec_pgbackrest_restore():
     print_func_name()
     exec_pgbackrest(["restore", "--archive-mode", "off"])
@@ -216,12 +253,30 @@ def start_postgres():
     exec_subprocess(["gosu", "postgres", "postgres"])
 
 
+# def temp():
+#     print_func_name()
+#     content_to_append = """
+#     archive_mode = 'off'
+#     restore_command = 'pgbackrest --stanza=main archive-get %f "%p"'
+#     """
+#     # append content_to_append to postgresql.conf in args.pgdata
+#     with open(f"{args.pgdata}/postgresql.conf", "a") as f:
+#         f.write(content_to_append)
+
+
 def main():
+    # temp()
+    print_pgdata_stats()
     write_pgbackrest_config()
     exec_postgres_docker_entrypoint()
+    print_pgdata_stats()
+    backup_postgres_conf()
     check_pgbackrest_info()
-    clear_postgres_pgdata_dir()
+    print_pgdata_stats()
+    # clear_postgres_pgdata_dir()
     exec_pgbackrest_restore()
+    print_pgdata_stats()
+    restore_postgres_conf()
     start_postgres()
 
 
