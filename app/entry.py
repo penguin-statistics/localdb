@@ -269,11 +269,17 @@ def start_postgres():
 def add_restore_command_to_conf():
     print_func_name()
     content_to_append = """
+# added by add_restore_command_to_conf function in entry.py
 archive_mode = 'off'
-restore_command = ''
-    """
-    # append content_to_append to postgresql.conf in args.pgdata
-    with open(f"{args.pgdata}/postgresql.conf", "a") as f:
+restore_command = 'pgbackrest --stanza=main --log-level-console=info archive-get %f "%p"'
+
+"""
+    # prepend content_to_append to postgresql.conf in args.pgdata
+    content = None
+    with open(f"{args.pgdata}/postgresql.conf", "r") as f:
+        content = f.read()
+    with open(f"{args.pgdata}/postgresql.conf", "w") as f:
+        f.write(content)
         f.write(content_to_append)
 
 
@@ -291,7 +297,7 @@ def main():
     exec_pgbackrest_restore()
     print_pgdata_stats()
     restore_postgres_conf()
-    # add_restore_command_to_conf()
+    add_restore_command_to_conf()
     start_postgres()
 
 
