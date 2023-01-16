@@ -6,6 +6,7 @@ services:
       context: "."
       dockerfile: Dockerfile
     container_name: penguin-localdb
+    shm_size: 1gb
     ports:
       - "15432:5432"
     environment:
